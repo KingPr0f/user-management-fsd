@@ -5,7 +5,9 @@ export const useLogout = () => {
   const navigate = useNavigate();
 
   const logout = () => {
+    // Удаляю "ключ" доступа
     localStorage.removeItem(TOKEN_KEY);
+    // Отправляю на страницу входа
     navigate(ROUTES.LOGIN);
   };
 
