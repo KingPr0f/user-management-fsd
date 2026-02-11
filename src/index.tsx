@@ -8,7 +8,7 @@ import 'antd/dist/reset.css';
 
 ReactDOM.render(
   <React.StrictMode>
-    <BrowserRouter> {
+    <BrowserRouter> 
       <App />
     </BrowserRouter>
   </React.StrictMode>,

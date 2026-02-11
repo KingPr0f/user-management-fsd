@@ -1,15 +1,18 @@
 import React, { Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom'; // Убрал BrowserRouter, он обычно в index.tsx, но если у тебя тут - ок
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConfigProvider, App as AntdApp } from 'antd';
 import ruRU from 'antd/locale/ru_RU';
 
+import { NotFoundPageAsync } from 'pages/NotFoundPage';
 
 
-// ИМПОРТЫ (baseUrl="src", поэтому без @/)
 import { ROUTES } from 'shared/consts'; 
 import { Loader } from 'shared/ui';
 import { RequireAuth } from './providers/RouteProvider/ui/RequireAuth';
+
+
+import { LoginPageAsync } from 'pages/LoginPage';
 
 
 const queryClient = new QueryClient({
@@ -24,14 +27,7 @@ export const App = () => (
             <Routes>
   <Route path={ROUTES.LOGIN} element={<LoginPageAsync />} />
   
-  <Route 
-    path={ROUTES.USERS} 
-    element={
-      <RequireAuth>
-        <UsersPageAsync />
-      </RequireAuth>
-    } 
-  />
+  
 
   {/* Вместо Navigate показываем страницу 404 по ТЗ */}
   <Route path="*" element={<NotFoundPageAsync />} />
