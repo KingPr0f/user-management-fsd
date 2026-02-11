@@ -21,9 +21,8 @@ const FormInternal = ({ children, ...props }: FormProps<any>) => {
   return <AntForm {...props}>{children}</AntForm>;
 };
 
-// --- ИСПРАВЛЕНИЕ ---
-// 1. Создаем временную переменную с типом any.
-// Это заставляет TypeScript "отстать" и разрешить нам делать что угодно.
+
+
 const FormTemp: any = FormInternal;
 
 // 2. Прикрепляем свойства (теперь ошибок не будет)
