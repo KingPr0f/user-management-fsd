@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PlusOutlined } from '@ant-design/icons';
 import { Button } from 'shared/ui';
-import { UserModal } from 'features/users/ui/UserModal/UserModal'; 
+import { UserModal } from 'features/users/ui/UserModal'
 
 export const CreateUserButton = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
