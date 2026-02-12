@@ -1,9 +1,8 @@
-import React, { useEffect } from 'react';
-import { Popconfirm } from 'antd'; 
-import { Modal, Form, Input, Button } from 'shared/ui'; 
-import { useCreateUser, useUpdateUser, useDeleteUser } from '../../model';
+import React from 'react';
+import { Modal } from 'shared/ui'; 
 import { User } from 'entities/user/types';
-import styled from 'styled-components';
+import { UserModalForm } from './UserModalForm';
+import { useUserModalLogic } from './useUserModalLogic';
 
 interface Props {
   isOpen: boolean;
@@ -11,119 +10,26 @@ interface Props {
   user: User | null;
 }
 
-const ButtonGroup = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 24px;
-`;
-
-export const UserModal: React.FC<Props> = ({ isOpen, onClose, user }) => {
-  const [form] = Form.useForm();
-  const isEdit = !!user;
-
- 
-  const { mutate: create } = useCreateUser();
-  const { mutate: update } = useUpdateUser();
-  const { mutate: remove } = useDeleteUser();
-
+export const UserModal: React.FC<Props> = (props) => {
+  const { isOpen, onClose } = props;
   
-  useEffect(() => {
-    if (isOpen) {
-      if (user) {
-        form.setFieldsValue(user);
-      } else {
-        form.resetFields();
-      }
-    }
-  }, [isOpen, user, form]);
-
-  const handleSubmit = async () => {
-    try {
-    
-      const values = await form.validateFields();
-      const cleanData = { 
-        name: values.name.trim(), 
-        avatar: values.avatar.trim() 
-      };
-      
-      if (isEdit && user) { 
-        
-        update({ id: user.id, data: cleanData }); 
-      } else {
-        create(cleanData);
-      }
-
-      
-      onClose(); 
-    } catch (e) {
-      
-      console.error('Validation failed:', e);
-    }
-  };
-
-  const handleDelete = () => {
-    if (user?.id) {
-      remove(user.id);
-      onClose(); 
-    }
-  };
+  const { form, isEdit, handleSubmit, handleDelete } = useUserModalLogic(props);
 
   return (
-    <Modal
-      open={isOpen}
-      onCancel={onClose}
-      title={isEdit ? 'Редактирование' : 'Создание'}
-      footer={null}
-      destroyOnClose
+    <Modal 
+      open={isOpen} 
+      onCancel={onClose} 
+      title={isEdit ? 'Редактирование' : 'Создание'} 
+      footer={null}  
       forceRender
     >
-      <Form form={form} layout="vertical">
-        {isEdit && (
-          <Form.Item label="ID" name="id">
-            <Input disabled />
-          </Form.Item>
-        )}
-        
-        <Form.Item 
-          name="name" 
-          label="Имя" 
-          rules={[{ required: true, message: 'Введите имя' }]}
-        >
-          <Input placeholder="Иван" />
-        </Form.Item>
-        
-        <Form.Item 
-          name="avatar" 
-          label="Аватар" 
-          rules={[
-            { required: true, message: 'Введите ссылку на фото' }, 
-            { type: 'url', message: 'Введите корректный URL' }
-          ]}
-        >
-          <Input placeholder="https://..." />
-        </Form.Item>
-
-        <ButtonGroup>
-          {isEdit && (
-            <Popconfirm 
-              title="Удалить этого пользователя?" 
-              onConfirm={handleDelete} 
-              okText="Да" 
-              cancelText="Нет"
-            >
-              <Button danger>Удалить</Button>
-            </Popconfirm>
-          )}
-          <Button onClick={onClose}>Отмена</Button>
-          <Button 
-            type="primary" 
-            onClick={handleSubmit}
-          >
-            {isEdit ? 'Сохранить' : 'Создать'}
-          </Button>
-        </ButtonGroup>
-      </Form>
+      <UserModalForm 
+        form={form} 
+        isEdit={isEdit} 
+        onDelete={handleDelete} 
+        onCancel={onClose} 
+        onSubmit={handleSubmit} 
+      />
     </Modal>
   );
 };

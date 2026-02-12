@@ -5,11 +5,11 @@ import { User } from 'entities/user/types';
 
 interface Props {
   user: User;
-  onEdit: (user: User) => void; // Action прокидываем сверху
+  onEdit: (user: User) => void; 
 }
 
 export const UserCardWidget: React.FC<Props> = ({ user, onEdit }) => {
-  // Собираем слоты (actions)
+  
   const actions = [
     <Button key="edit" type="link" onClick={() => onEdit(user)}>
       Ред.
