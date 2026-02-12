@@ -8,7 +8,7 @@ import styled from 'styled-components';
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  user: User | null; // Если user есть — это редактирование. Если null — создание.
+  user: User | null;
 }
 
 const ButtonGroup = styled.div`
@@ -19,38 +19,31 @@ const ButtonGroup = styled.div`
 `;
 
 export const UserModal: React.FC<Props> = ({ isOpen, onClose, user }) => {
-  // Создаю инстанс формы Ant Design
   const [form] = Form.useForm();
-  // Достаю методы изменения данных из своего хука
   const { create, update, remove, isLoading } = useUserMutations(onClose);
-  // Флаг: мы редактируем или создаем?
   const isEdit = !!user;
 
-  // Эффект: при открытии модалки заполняем форму данными пользователя или очищаем её
+  // ИСПРАВЛЕНИЕ: Заполняем форму только когда модалка ОТКРЫТА
   useEffect(() => {
-    if (isOpen && user) {
-        form.setFieldsValue(user); // Заполняем поля (имя, аватар)
-    } else {
-        form.resetFields(); // Очищаем поля для нового создания
+    if (isOpen) {
+      if (user) {
+        form.setFieldsValue(user);
+      } else {
+        form.resetFields();
+      }
     }
   }, [isOpen, user, form]);
 
-  // Обработчик сохранения формы
   const handleSubmit = async () => {
     try {
-      // Валидируем поля (проверяем, что они не пустые)
       const values = await form.validateFields();
-      // Очищаем пробелы по краям
       const cleanData = { name: values.name.trim(), avatar: values.avatar.trim() };
       
       if (isEdit && user) { 
-        // Если редактируем — вызываем update с ID пользователя
         await update({ id: user.id, data: cleanData }); 
       } else {
-        // Если создаем — вызываем create только с данными
         await create(cleanData);
       }
-      
     } catch (e) {
       console.error(e);
     }
@@ -59,13 +52,13 @@ export const UserModal: React.FC<Props> = ({ isOpen, onClose, user }) => {
   return (
     <Modal
       open={isOpen}
-      // Если идет загрузка, запрещаем закрывать окно, чтобы не прервать запрос
       onCancel={!isLoading ? onClose : undefined}
       title={isEdit ? 'Редактирование' : 'Создание'}
-      footer={null} // Убираю стандартный футер, использую свой ButtonGroup
+      footer={null}
+      destroyOnClose // Важно: очищает DOM при закрытии
+      forceRender // Важно: помогает избежать проблем с инициализацией формы
     >
       <Form form={form} layout="vertical" disabled={isLoading}>
-        {/* Показываю ID только при редактировании (он read-only) */}
         {isEdit && <Form.Item label="ID" name="id"><Input disabled /></Form.Item>}
         
         <Form.Item name="name" label="Имя" rules={[{ required: true }]}>
@@ -77,22 +70,16 @@ export const UserModal: React.FC<Props> = ({ isOpen, onClose, user }) => {
         </Form.Item>
 
         <ButtonGroup>
-          {/* Кнопку удаления показываю только при редактировании */}
           {isEdit && (
             <Popconfirm 
               title="Удалить?" 
-              onConfirm={() => {
-                if (user && user.id) {
-                  remove(user.id);
-                }
-              }} 
+              onConfirm={() => user?.id && remove(user.id)} 
               okText="Да" 
               disabled={isLoading}
             >
               <Button danger loading={isLoading}>Удалить</Button>
             </Popconfirm>
           )}
-          
           <Button onClick={onClose} disabled={isLoading}>Отмена</Button>
           <Button type="primary" onClick={handleSubmit} loading={isLoading}>
             {isEdit ? 'Сохранить' : 'Создать'}
