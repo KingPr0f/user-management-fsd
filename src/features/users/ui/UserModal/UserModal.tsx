@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Popconfirm } from 'antd'; 
 import { Modal, Form, Input, Button } from 'shared/ui'; 
-import { useUserMutations } from '../../model/useUserMutations';
+import { useCreateUser, useUpdateUser, useDeleteUser } from '../../model';
 import { User } from 'entities/user/types';
 import styled from 'styled-components';
 
@@ -20,10 +20,14 @@ const ButtonGroup = styled.div`
 
 export const UserModal: React.FC<Props> = ({ isOpen, onClose, user }) => {
   const [form] = Form.useForm();
-  const { create, update, remove, isLoading } = useUserMutations(onClose);
   const isEdit = !!user;
 
-  // ИСПРАВЛЕНИЕ: Заполняем форму только когда модалка ОТКРЫТА
+ 
+  const { mutate: create } = useCreateUser();
+  const { mutate: update } = useUpdateUser();
+  const { mutate: remove } = useDeleteUser();
+
+  
   useEffect(() => {
     if (isOpen) {
       if (user) {
@@ -36,52 +40,86 @@ export const UserModal: React.FC<Props> = ({ isOpen, onClose, user }) => {
 
   const handleSubmit = async () => {
     try {
+    
       const values = await form.validateFields();
-      const cleanData = { name: values.name.trim(), avatar: values.avatar.trim() };
+      const cleanData = { 
+        name: values.name.trim(), 
+        avatar: values.avatar.trim() 
+      };
       
       if (isEdit && user) { 
-        await update({ id: user.id, data: cleanData }); 
+        
+        update({ id: user.id, data: cleanData }); 
       } else {
-        await create(cleanData);
+        create(cleanData);
       }
+
+      
+      onClose(); 
     } catch (e) {
-      console.error(e);
+      
+      console.error('Validation failed:', e);
+    }
+  };
+
+  const handleDelete = () => {
+    if (user?.id) {
+      remove(user.id);
+      onClose(); 
     }
   };
 
   return (
     <Modal
       open={isOpen}
-      onCancel={!isLoading ? onClose : undefined}
+      onCancel={onClose}
       title={isEdit ? 'Редактирование' : 'Создание'}
       footer={null}
-      destroyOnClose // Важно: очищает DOM при закрытии
-      forceRender // Важно: помогает избежать проблем с инициализацией формы
+      destroyOnClose
+      forceRender
     >
-      <Form form={form} layout="vertical" disabled={isLoading}>
-        {isEdit && <Form.Item label="ID" name="id"><Input disabled /></Form.Item>}
+      <Form form={form} layout="vertical">
+        {isEdit && (
+          <Form.Item label="ID" name="id">
+            <Input disabled />
+          </Form.Item>
+        )}
         
-        <Form.Item name="name" label="Имя" rules={[{ required: true }]}>
+        <Form.Item 
+          name="name" 
+          label="Имя" 
+          rules={[{ required: true, message: 'Введите имя' }]}
+        >
           <Input placeholder="Иван" />
         </Form.Item>
         
-        <Form.Item name="avatar" label="Аватар" rules={[{ required: true }, { type: 'url' }]}>
+        <Form.Item 
+          name="avatar" 
+          label="Аватар" 
+          rules={[
+            { required: true, message: 'Введите ссылку на фото' }, 
+            { type: 'url', message: 'Введите корректный URL' }
+          ]}
+        >
           <Input placeholder="https://..." />
         </Form.Item>
 
         <ButtonGroup>
           {isEdit && (
             <Popconfirm 
-              title="Удалить?" 
-              onConfirm={() => user?.id && remove(user.id)} 
+              title="Удалить этого пользователя?" 
+              onConfirm={handleDelete} 
               okText="Да" 
-              disabled={isLoading}
+              cancelText="Нет"
             >
-              <Button danger loading={isLoading}>Удалить</Button>
+              <Button danger>Удалить</Button>
             </Popconfirm>
           )}
-          <Button onClick={onClose} disabled={isLoading}>Отмена</Button>
-          <Button type="primary" onClick={handleSubmit} loading={isLoading}>
+          <Button onClick={onClose}>Отмена</Button>
+          <Button 
+            type="primary" 
+            onClick={handleSubmit}
+          >
             {isEdit ? 'Сохранить' : 'Создать'}
           </Button>
         </ButtonGroup>
