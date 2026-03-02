@@ -9,7 +9,6 @@ interface LoginParams {
   password?: string;
 }
 
-
 const fakeLoginRequest = (values: LoginParams): Promise<string> => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -27,19 +26,18 @@ export const useLogin = () => {
 
   const mutation = useMutation({
     mutationFn: fakeLoginRequest,
-   
     onSuccess: (token) => {
       setToken(token);
       navigate(ROUTES.USERS);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       const message = error.message || 'Ошибка входа';
       notification.error({ message });
-    }
+    },
   });
 
   return {
     login: mutation.mutate,
-    isLoading: mutation.isLoading 
+    isLoading: mutation.isLoading,
   };
 };

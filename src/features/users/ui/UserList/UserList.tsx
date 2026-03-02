@@ -1,26 +1,29 @@
 import React from 'react';
-import { Empty } from 'antd';
-import { List } from 'shared/ui';
+import { List } from 'antd';
+import dayjs from 'dayjs';
 import { User } from 'entities/user/types';
-import { UserCardWidget } from 'widgets/UserCard'; 
+import * as S from './UserList.styles';
 
-interface Props {
-  users: User[];
+interface UserListProps {
+  users?: User[];
   onEditUser: (user: User) => void;
 }
 
-export const UserList: React.FC<Props> = ({ users, onEditUser }) => {
-  if (!users.length) return <Empty description="Список пуст" />;
-
+export const UserList = ({ users, onEditUser }: UserListProps) => {
   return (
     <List
+      itemLayout="horizontal"
       dataSource={users}
       renderItem={(user) => (
-        <UserCardWidget 
-           key={user.id} 
-           user={user} 
-           onEdit={onEditUser} 
-        />
+        <List.Item>
+          <List.Item.Meta
+            avatar={<S.ClickableAvatar src={user.avatar} onClick={() => onEditUser(user)} />}
+            title={<S.UserName onClick={() => onEditUser(user)}>{user.name}</S.UserName>}
+            description={
+              <S.DateText>Зарегистрирован {dayjs(user.createdAt).format('DD.MM.YYYY')}</S.DateText>
+            }
+          />
+        </List.Item>
       )}
     />
   );

@@ -1,27 +1,35 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { notification } from 'antd';
-import { User } from 'entities/user/types';
+import { useQueryClient } from '@tanstack/react-query';
 import { USER_QUERY_KEY } from 'shared/consts';
+import { User } from 'entities/user/types';
 
-export const useOptimisticOptions = (successMessage: string) => {
+export interface OptimisticContext {
+  previousUsers: User[] | undefined;
+}
+
+export const useOptimisticOptions = (successMessage: string = 'Операция выполнена') => {
   const queryClient = useQueryClient();
 
   return {
-    onMutate: async (updater: (old: User[] | undefined) => User[] | undefined) => {
+    onMutate: async (_variables: unknown): Promise<OptimisticContext> => {
       await queryClient.cancelQueries({ queryKey: USER_QUERY_KEY });
-      const previousUsers = queryClient.getQueryData(USER_QUERY_KEY);
-      queryClient.setQueryData(USER_QUERY_KEY, updater);
+      const previousUsers = queryClient.getQueryData<User[]>(USER_QUERY_KEY);
       return { previousUsers };
     },
-    onError: (err: any, variables: any, context: any) => {
+
+    onError: (err: Error, _variables: unknown, context: OptimisticContext | undefined) => {
       if (context?.previousUsers) {
         queryClient.setQueryData(USER_QUERY_KEY, context.previousUsers);
       }
-      notification.error({ message: 'Ошибка при выполнении операции' });
+      notification.error({ message: 'Ошибка', description: err.message });
     },
+
+    onSuccess: () => {
+      notification.success({ message: successMessage });
+    },
+
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: USER_QUERY_KEY });
-      notification.success({ message: successMessage });
     },
   };
 };

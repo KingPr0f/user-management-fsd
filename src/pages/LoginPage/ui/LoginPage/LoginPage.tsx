@@ -1,33 +1,59 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useLogin } from 'features/auth/model/useLogin';
+import React, { useState } from 'react';
+import { Form, Input, Button, notification } from 'antd';
+import { useNavigate } from 'react-router-dom';
 import { ROUTES } from 'shared/consts';
-import { Button, Form, Input } from 'shared/ui';
-import { getToken } from 'shared/lib/token';
+import { setToken } from 'shared/lib/token';
 import * as S from './LoginPage.styles';
 
-const LoginPage = () => {
-  const { login, isLoading } = useLogin();
+export const LoginPage = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-  if (getToken()) return <Navigate to={ROUTES.USERS} replace />;
+  const onFinish = (values: Record<string, string>) => {
+    setIsLoading(true);
+
+    new Promise((resolve, reject) => {
+      setTimeout(() => {
+        if (values.username === 'admin' && values.password === 'admin') {
+          resolve('dummy-jwt-token');
+        } else {
+          reject(new Error('Неверный логин или пароль'));
+        }
+      }, 2000);
+    })
+      .then((token) => {
+        setToken(token as string);
+        navigate(ROUTES.USERS, { replace: true });
+      })
+      .catch((err: Error) => {
+        notification.error({ message: err.message });
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
 
   return (
-    <S.Wrapper>
-      <S.LoginCard title="Вход в систему">
-        <Form onFinish={login} layout="vertical" size="large">
-          <Form.Item name="login" rules={[{ required: true, message: 'Введите логин' }]}>
-            <Input placeholder="Логин (admin)" />
+    <S.FullPageCenter>
+      <S.AuthCard>
+        <S.FormTitle>Авторизация</S.FormTitle>
+
+        <Form onFinish={onFinish}>
+          <Form.Item name="username" rules={[{ required: true, message: 'Обязательное поле' }]}>
+            <Input size="large" placeholder="Логин" />
           </Form.Item>
-          <Form.Item name="password" rules={[{ required: true, message: 'Введите пароль' }]}>
-            <Input.Password placeholder="Пароль (admin)" />
+
+          <Form.Item name="password" rules={[{ required: true, message: 'Обязательное поле' }]}>
+            <Input.Password size="large" placeholder="Пароль" />
           </Form.Item>
-          <Button type="primary" htmlType="submit" block loading={isLoading}>
-            Войти
-          </Button>
+
+          <S.ButtonWrapper>
+            <Button type="primary" size="large" htmlType="submit" loading={isLoading}>
+              Войти
+            </Button>
+          </S.ButtonWrapper>
         </Form>
-      </S.LoginCard>
-    </S.Wrapper>
+      </S.AuthCard>
+    </S.FullPageCenter>
   );
 };
-
-export default LoginPage;

@@ -1,34 +1,38 @@
 import React, { useState } from 'react';
 import { User } from 'entities/user/types';
-import { Loader } from 'shared/ui';
 import { UserList } from 'features/users/ui/UserList/UserList';
 import { UserModal } from 'features/users/ui/UserModal';
-
 import { useUsersList } from '../model';
+import * as S from './UsersListWidget.styles';
+import { Spin } from 'antd';
+import { CreateUserButton } from 'features/create-user/ui/CreateUserButton';
 
 export const UsersListWidget = () => {
- 
   const { users, isLoading, isError } = useUsersList();
-  
+
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
-  if (isLoading) return <Loader />;
-  if (isError) return <div>Ошибка загрузки данных</div>;
+  if (isLoading) {
+    return (
+      <S.LoaderWrapper>
+        <Spin size="large" />
+      </S.LoaderWrapper>
+    );
+  }
+
+  if (isError) {
+    return <S.ErrorMessage>Ошибка загрузки данных</S.ErrorMessage>;
+  }
 
   return (
     <>
-      <div style={{ opacity: isLoading ? 0.5 : 1, transition: '0.3s' }}>
-        <UserList 
-          users={users} 
-          onEditUser={setEditingUser} 
-        />
-      </div>
-      
-      <UserModal 
-        isOpen={!!editingUser} 
-        onClose={() => setEditingUser(null)} 
-        user={editingUser} 
-      />
+      <UserList users={users} onEditUser={setEditingUser} />
+
+      <S.CreateButtonWrapper>
+        <CreateUserButton />
+      </S.CreateButtonWrapper>
+
+      <UserModal isOpen={!!editingUser} onClose={() => setEditingUser(null)} user={editingUser} />
     </>
   );
 };

@@ -1,37 +1,64 @@
 import React from 'react';
-import { Form, Input, Button, Popconfirm } from 'antd';
-import * as S from './UserModal.styles';
+import { FormInstance, Input, Button } from 'antd';
+import { Form } from 'shared/ui/Form/Form';
+import * as S from './UserModalForm.styles';
 
 interface UserModalFormProps {
-  form: any;
+  form: FormInstance;
   isEdit: boolean;
   onDelete: () => void;
   onCancel: () => void;
   onSubmit: () => void;
+  isLoading: boolean;
 }
 
-export const UserModalForm: React.FC<UserModalFormProps> = ({ 
-  form, isEdit, onDelete, onCancel, onSubmit 
-}) => (
-  <Form form={form} layout="vertical">
-    {isEdit && <Form.Item label="ID" name="id"><Input disabled /></Form.Item>}
-    <Form.Item name="name" label="Имя" rules={[{ required: true, message: 'Введите имя' }]}>
-      <Input placeholder="Имя пользователя" />
-    </Form.Item>
-    <Form.Item name="avatar" label="Аватар" rules={[{ required: true, message: 'URL аватара' }, { type: 'url' }]}>
-      <Input placeholder="https://..." />
-    </Form.Item>
-
-    <S.ButtonGroup>
+export const UserModalForm = ({
+  form,
+  isEdit,
+  onDelete,
+  onCancel,
+  onSubmit,
+  isLoading,
+}: UserModalFormProps) => {
+  return (
+    <Form form={form} layout="vertical" requiredMark={false}>
       {isEdit && (
-        <Popconfirm title="Удалить?" onConfirm={onDelete} okText="Да" cancelText="Нет">
-          <Button danger>Удалить</Button>
-        </Popconfirm>
+        <Form.Item label="id" name="id">
+          <S.DisabledInput disabled />
+        </Form.Item>
       )}
-      <Button onClick={onCancel}>Отмена</Button>
-      <Button type="primary" onClick={onSubmit}>
-        {isEdit ? 'Сохранить' : 'Создать'}
-      </Button>
-    </S.ButtonGroup>
-  </Form>
-);
+
+      <Form.Item label="Имя" name="name" rules={[{ required: true, message: 'Обязательное поле' }]}>
+        <Input disabled={isLoading} />
+      </Form.Item>
+
+      <Form.Item
+        label="Ссылка на аватарку"
+        name="avatar"
+        rules={[
+          { required: true, message: 'Обязательное поле' },
+          { type: 'url', message: 'Введите корректный URL' },
+        ]}
+      >
+        <Input disabled={isLoading} />
+      </Form.Item>
+
+      <S.FormActions $isEdit={isEdit}>
+        {isEdit && (
+          <Button type="primary" onClick={onDelete} loading={isLoading}>
+            Удалить
+          </Button>
+        )}
+
+        <S.RightButtons>
+          <Button type="primary" onClick={onSubmit} loading={isLoading}>
+            {isEdit ? 'Сохранить' : 'Создать'}
+          </Button>
+          <Button type="primary" onClick={onCancel} disabled={isLoading}>
+            Отмена
+          </Button>
+        </S.RightButtons>
+      </S.FormActions>
+    </Form>
+  );
+};

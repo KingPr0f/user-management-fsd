@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal } from 'shared/ui'; 
+import { Modal } from 'shared/ui';
 import { User } from 'entities/user/types';
 import { UserModalForm } from './UserModalForm';
 import { useUserModalLogic } from './useUserModalLogic';
@@ -12,23 +12,24 @@ interface Props {
 
 export const UserModal: React.FC<Props> = (props) => {
   const { isOpen, onClose } = props;
-  
-  const { form, isEdit, handleSubmit, handleDelete } = useUserModalLogic(props);
+
+  const { form, isEdit, handleSubmit, handleDelete, isLoading } = useUserModalLogic(props);
 
   return (
-    <Modal 
-      open={isOpen} 
-      onCancel={onClose} 
-      title={isEdit ? 'Редактирование' : 'Создание'} 
-      footer={null}  
+    <Modal
+      open={isOpen}
+      onCancel={onClose}
+      title={isEdit ? 'Редактирование пользователя' : 'Создание пользователя'}
+      footer={null}
       forceRender
     >
-      <UserModalForm 
-        form={form} 
-        isEdit={isEdit} 
-        onDelete={handleDelete} 
-        onCancel={onClose} 
-        onSubmit={handleSubmit} 
+      <UserModalForm
+        form={form}
+        isEdit={isEdit}
+        onDelete={handleDelete}
+        onCancel={onClose}
+        onSubmit={handleSubmit}
+        isLoading={isLoading}
       />
     </Modal>
   );

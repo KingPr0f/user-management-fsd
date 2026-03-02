@@ -1,9 +1,10 @@
 import axios from 'axios';
-import { notification } from 'antd';
-import { API_URL, ROUTES } from 'shared/consts';
-import { getToken, removeToken } from 'shared/lib/token';
+import { API_URL } from '../consts';
+import { getToken } from '../lib/token';
 
-export const api = axios.create({ baseURL: API_URL });
+export const api = axios.create({
+  baseURL: API_URL,
+});
 
 api.interceptors.request.use((config) => {
   const token = getToken();
@@ -14,17 +15,11 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-  (res) => res,
+  (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      removeToken();
-      window.location.href = ROUTES.LOGIN;
-    } else if (error.code !== 'ERR_CANCELED') {
-      notification.error({
-        message: 'Ошибка',
-        description: error.response?.statusText || 'Что-то пошло не так',
-      });
+      window.dispatchEvent(new Event('unauthorized'));
     }
     return Promise.reject(error);
-  }
+  },
 );
