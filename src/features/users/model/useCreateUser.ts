@@ -8,15 +8,16 @@ export const useCreateUser = () => {
 
   return useMutation({
     mutationFn: userApi.create,
-    onMutate: (newUser) => options.onMutate((old: User[] | undefined) => {
-      const optimisticUser: User = {
-        ...newUser,
-        id: 'temp-' + Date.now(),
-        createdAt: new Date().toISOString(),
-        avatar: newUser.avatar || '',
-      };
-      return old ? [optimisticUser, ...old] : [optimisticUser];
-    }),
+    onMutate: (newUser) =>
+      options.onMutate((old: User[] | undefined) => {
+        const optimisticUser: User = {
+          ...newUser,
+          id: 'temp-' + Date.now(),
+          createdAt: new Date().toISOString(),
+          avatar: newUser.avatar || '',
+        };
+        return old ? [optimisticUser, ...old] : [optimisticUser];
+      }),
     onError: options.onError,
     onSettled: options.onSettled,
   });

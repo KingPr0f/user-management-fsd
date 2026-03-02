@@ -1,7 +1,7 @@
 import React from 'react';
 import { Result } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { Button } from 'shared/ui'; 
+import { Button } from 'shared/ui';
 import { ROUTES } from 'shared/consts';
 import * as S from './NotFoundPage.styles';
 

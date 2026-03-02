@@ -1,7 +1,10 @@
-import { useEffect } from 'react';
 import { Form } from 'antd';
+import { useEffect } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { USER_QUERY_KEY } from 'shared/consts';
+import { userApi } from 'entities/user/api';
 import { User } from 'entities/user/types';
-import { useCreateUser, useUpdateUser, useDeleteUser } from 'features/users/model';
+import { useOptimisticOptions, OptimisticContext } from '../../model/useOptimisticOptions';
 
 interface UseUserModalLogicProps {
   isOpen: boolean;
@@ -12,47 +15,88 @@ interface UseUserModalLogicProps {
 export const useUserModalLogic = ({ isOpen, onClose, user }: UseUserModalLogicProps) => {
   const [form] = Form.useForm();
   const isEdit = !!user;
+  const optimisticOptions = useOptimisticOptions();
 
-  const { mutate: create } = useCreateUser();
-  const { mutate: update } = useUpdateUser();
-  const { mutate: remove } = useDeleteUser();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (isOpen) {
-      user ? form.setFieldsValue(user) : form.resetFields();
-    }
-  }, [isOpen, user, form]);
-
-  const handleSubmit = async () => {
-    try {
-      const values = await form.validateFields();
-      const cleanData = { 
-        name: values.name.trim(), 
-        avatar: values.avatar.trim() 
-      };
-
       if (isEdit && user) {
-        update({ id: user.id, data: cleanData });
+        form.setFieldsValue(user);
       } else {
-        create(cleanData);
+        form.resetFields();
       }
-      onClose();
-    } catch (e) {
-      console.error('Validation error:', e);
     }
+  }, [isOpen, isEdit, user, form]);
+
+  const createUserMutation = useMutation<
+    User,
+    Error,
+    Omit<User, 'id' | 'createdAt'>,
+    OptimisticContext
+  >({
+    mutationFn: userApi.create,
+    ...optimisticOptions,
+  });
+
+  const updateUserMutation = useMutation<
+    User,
+    Error,
+    { id: string; data: Partial<User> },
+    OptimisticContext
+  >({
+    mutationFn: ({ id, data }) => userApi.update(id, data),
+    ...optimisticOptions,
+  });
+
+  const deleteUserMutation = useMutation<User, Error, string, OptimisticContext>({
+    mutationFn: userApi.delete,
+    ...optimisticOptions,
+  });
+
+  const handleSubmit = () => {
+    form.validateFields().then((values) => {
+      if (isEdit && user) {
+        updateUserMutation.mutate(
+          { id: user.id, data: values },
+          {
+            onSuccess: (updatedUser) => {
+              queryClient.setQueryData<User[]>(USER_QUERY_KEY, (old) =>
+                old ? old.map((u) => (u.id === updatedUser.id ? updatedUser : u)) : [],
+              );
+              onClose();
+            },
+          },
+        );
+      } else {
+        createUserMutation.mutate(values, {
+          onSuccess: (newUser) => {
+            queryClient.setQueryData<User[]>(USER_QUERY_KEY, (old) =>
+              old ? [...old, newUser] : [newUser],
+            );
+            onClose();
+            form.resetFields();
+          },
+        });
+      }
+    });
   };
 
   const handleDelete = () => {
-    if (user?.id) {
-      remove(user.id);
-      onClose();
+    if (user) {
+      deleteUserMutation.mutate(user.id, {
+        onSuccess: () => {
+          queryClient.setQueryData<User[]>(USER_QUERY_KEY, (old) =>
+            old ? old.filter((u) => u.id !== user.id) : [],
+          );
+          onClose();
+        },
+      });
     }
   };
 
-  return {
-    form,
-    isEdit,
-    handleSubmit,
-    handleDelete,
-  };
+  const isPending =
+    createUserMutation.isPending || updateUserMutation.isPending || deleteUserMutation.isPending;
+
+  return { form, isEdit, handleSubmit, handleDelete, isLoading: isPending };
 };

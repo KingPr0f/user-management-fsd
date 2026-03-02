@@ -3,21 +3,25 @@ import { Layout } from 'antd';
 
 export const PageLayout = styled(Layout)`
   min-height: 100vh;
-  background: #f5f7fa;
+  background: #ffffff; /* Строго белый фон, как на макете */
 `;
 
-export const Header = styled(Layout.Header)`
-  background: #fff;
+export const Header = styled.div`
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 24px;
-  border-bottom: 1px solid #eee;
+  justify-content: flex-end;
+  padding: 24px 40px 0;
+  background: transparent;
 `;
 
-export const Content = styled(Layout.Content)`
+export const Content = styled.div`
   max-width: 800px;
-  margin: 24px auto;
+  margin: 0 auto;
   width: 100%;
-  padding: 0 16px;
+  padding: 24px 24px 60px;
+`;
+
+export const CreateButtonWrapper = styled.div`
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-start;
 `;

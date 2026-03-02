@@ -1,16 +1,32 @@
 import styled from 'styled-components';
-import { Card, Layout } from 'antd';
 
-export const Wrapper = styled(Layout)`
-  min-height: 100vh;
+export const FullPageCenter = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 100vh;
   background: #f0f2f5;
 `;
 
-export const LoginCard = styled(Card)`
+export const AuthCard = styled.div`
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   width: 100%;
-  max-width: 360px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  max-width: 400px;
+`;
+
+export const FormTitle = styled.h2`
+  margin-top: 0;
+  margin-bottom: 24px;
+  font-size: 18px;
+  font-weight: 500;
+  color: #000000;
+`;
+
+export const ButtonWrapper = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
 `;

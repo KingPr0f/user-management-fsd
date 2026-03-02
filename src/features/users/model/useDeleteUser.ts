@@ -8,9 +8,10 @@ export const useDeleteUser = () => {
 
   return useMutation({
     mutationFn: userApi.delete,
-    onMutate: (deletedId) => options.onMutate((old: User[] | undefined) => 
-      old ? old.filter((user) => user.id !== deletedId) : []
-    ),
+    onMutate: (deletedId) =>
+      options.onMutate((old: User[] | undefined) =>
+        old ? old.filter((user) => user.id !== deletedId) : [],
+      ),
     onError: options.onError,
     onSettled: options.onSettled,
   });

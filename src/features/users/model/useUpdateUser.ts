@@ -8,9 +8,10 @@ export const useUpdateUser = () => {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<User> }) => userApi.update(id, data),
-    onMutate: ({ id, data }) => options.onMutate((old: User[] | undefined) => 
-      old?.map((user) => (user.id === id ? { ...user, ...data } : user))
-    ),
+    onMutate: ({ id, data }) =>
+      options.onMutate((old: User[] | undefined) =>
+        old?.map((user) => (user.id === id ? { ...user, ...data } : user)),
+      ),
     onError: options.onError,
     onSettled: options.onSettled,
   });
